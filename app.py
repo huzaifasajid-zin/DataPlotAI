@@ -187,6 +187,14 @@ def create_app():
                 task.status = 'completed'
                 db.session.commit()
                 print(f"Scraping completed for '{keyword}'. Found {count} jobs.")
+                
+                # Trigger Email Notification
+                from email_service import send_scrape_completion_email
+                from models import User
+                if task.user_id:
+                    user = User.query.get(task.user_id)
+                    if user:
+                        send_scrape_completion_email(user, task, count)
             except Exception as e:
                 print(f"Scraping failed: {e}")
                 

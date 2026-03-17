@@ -21,6 +21,14 @@ def run_scraper(app, task_id, keyword):
             task.status = 'completed'
             db.session.commit()
             print(f"[Scheduler] Scraping completed for '{keyword}'. Found {count} jobs.")
+            
+            # Trigger Email Notification
+            from email_service import send_scrape_completion_email
+            from models import User
+            if task.user_id:
+                user = User.query.get(task.user_id)
+                if user:
+                    send_scrape_completion_email(user, task, count)
         except Exception as e:
             print(f"[Scheduler] Scraping failed: {e}")
             if task:
