@@ -48,7 +48,7 @@ def app_context(app):
 
 @pytest.fixture
 def test_user(app):
-    """Create a test user."""
+    """Create a test user and return user_id."""
     with app.app_context():
         user = User(
             name='Test User',# type: ignore
@@ -58,7 +58,9 @@ def test_user(app):
         )
         db.session.add(user)
         db.session.commit()
-        return user
+        user_id = user.id
+    # Return user_id instead of user object to avoid detached instance errors
+    return user_id
 
 
 @pytest.fixture
@@ -66,7 +68,7 @@ def test_user_with_tasks(app, test_user):
     """Create a test user with scrape tasks."""
     with app.app_context():
         task = ScrapeTask(
-            user_id=test_user.id,# type: ignore
+            user_id=test_user,# type: ignore
             keyword='python',# type: ignore
             location='Remote',# type: ignore
             status='completed'# type: ignore
@@ -97,5 +99,5 @@ def logged_in_client(client, app, test_user):
         with app.app_context():
             # Simulate login by setting session
             with client.session_transaction() as sess:
-                sess['user_id'] = test_user.id
+                sess['user_id'] = test_user
             yield client
