@@ -1,0 +1,182 @@
+/* Dashboard Custom Theme resembling reference image */
+body {
+    background-color: #f5f6fa;
+    font-family: 'Inter', -apple-system, sans-serif;
+}
+
+/* Global Color Overrides for Bootstrap to match Analytics Theme */
+.text-primary { color: #3f6adb !important; }
+.bg-primary { background-color: #3f6adb !important; }
+.btn-primary { 
+    background-color: #3f6adb !important; 
+    border-color: #3f6adb !important; 
+    color: white !important;
+}
+.btn-primary:hover {
+    background-color: #3255b0 !important;
+    border-color: #3255b0 !important;
+}
+.btn-outline-primary {
+    color: #3f6adb !important;
+    border-color: #3f6adb !important;
+}
+.btn-outline-primary:hover {
+    background-color: #3f6adb !important;
+    color: white !important;
+}
+
+/* Navbar simplification */
+.navbar {
+    background-color: #ffffff !important;
+    border-bottom: 1px solid #eef2f5;
+}
+.navbar-brand, .nav-link {
+    color: #232d42 !important;
+}
+.navbar-brand fw-bold {
+    color: #3f6adb !important;
+}
+
+/* Layout overrides */
+.main-content {
+    max-width: 1400px;
+}
+
+/* Metric Cards */
+.metric-card {
+    border: none;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+}
+
+.metric-card-blue {
+    background-color: #3f6adb;
+    color: white;
+}
+
+.metric-card-white {
+    background-color: #ffffff;
+    color: #232d42;
+}
+
+.metric-icon-wrapper {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.metric-icon-blue { background: rgba(255,255,255,0.2); color: white; }
+.metric-icon-red { background: rgba(242, 74, 74, 0.1); color: #f24a4a; }
+.metric-icon-green { background: rgba(67, 204, 121, 0.1); color: #43cc79; }
+
+.metric-title {
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 5px;
+}
+.metric-card-blue .metric-title { color: rgba(255,255,255,0.8); }
+.metric-card-white .metric-title { color: #8a92a6; }
+
+.metric-value {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 0;
+}
+
+/* Background mock sparklines for cards */
+.sparkline-bars {
+    position: absolute;
+    bottom: -10px;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background-image: linear-gradient(to top, rgba(255,255,255,0.2) 20%, transparent 20%), 
+                      linear-gradient(to top, rgba(255,255,255,0.2) 50%, transparent 50%),
+                      linear-gradient(to top, rgba(255,255,255,0.2) 80%, transparent 80%),
+                      linear-gradient(to top, rgba(255,255,255,0.2) 40%, transparent 40%),
+                      linear-gradient(to top, rgba(255,255,255,0.2) 90%, transparent 90%),
+                      linear-gradient(to top, rgba(255,255,255,0.2) 60%, transparent 60%);
+    background-size: 15% 100%;
+    background-repeat: repeat-x;
+    background-position: 5% 0, 25% 0, 45% 0, 65% 0, 85% 0, 105% 0;
+    opacity: 0.6;
+}
+
+.sparkline-wave-red {
+    position: absolute;
+    bottom: -20px;
+    left: 0;
+    right: 0;
+    height: 80px;
+    background: radial-gradient(circle at 50% 100%, rgba(242, 74, 74, 0.1) 0%, transparent 70%);
+}
+
+.sparkline-wave-green {
+    position: absolute;
+    bottom: -20px;
+    left: 0;
+    right: 0;
+    height: 80px;
+    background: radial-gradient(circle at 50% 100%, rgba(67, 204, 121, 0.1) 0%, transparent 70%);
+}
+
+/* Specific Chart Card styling */
+.chart-card {
+    background: #ffffff;
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    height: 100%;
+}
+
+.chart-card-header {
+    padding: 20px 24px 0 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chart-card-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #232d42;
+    margin: 0;
+}
+
+.chart-card-subtitle {
+    font-size: 12px;
+    color: #8a92a6;
+}
+
+.chart-container-large {
+    height: 350px;
+    width: 100%;
+}
+.chart-container-medium {
+    height: 300px;
+    width: 100%;
+}
+
+/* Spin animation */
+.spin {
+    animation: spin 2s linear infinite;
+    display: inline-block;
+}
+
+@keyframes spin {
+    100% { transform: rotate(360deg); }
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background: #3f6adb !important;
+    color: white !important;
+    border: 1px solid #3f6adb !important;
+}

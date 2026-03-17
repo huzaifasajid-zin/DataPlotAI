@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('admin.admin_dashboard') }}">Admin Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Users</li>
+        </ol>
+    </nav>
+    <div class="d-flex justify-content-between align-items-center">
+        <h3 class="fw-bold mb-0"><i class="bi bi-people text-primary"></i> User Management</h3>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle text-nowrap" id="usersTable">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Purpose</th>
+                        <th>Role</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users %}
+                    <tr id="user-{{ u.id }}">
+                        <td>{{ u.id }}</td>
+                        <td class="fw-semibold">{{ u.name }}</td>
+                        <td>{{ u.email }}</td>
+                        <td class="text-muted small text-truncate" style="max-width: 150px;">{{ u.purpose }}</td>
+                        <td>
+                            <div class="form-check form-switch ps-0">
+                                <!-- using ms-4 because ps-0 on the wrapper removes default BS padding -->
+                                <input class="form-check-input ms-0 toggle-admin-btn" type="checkbox" role="switch" id="admin-{{ u.id }}" data-id="{{ u.id }}" {% if u.is_admin %}checked{% endif %} {% if session.user_id == u.id %}disabled title="Cannot change own permissions"{% endif %}>
+                                <label class="form-check-label ms-5 mt-1 small" for="admin-{{ u.id }}">
+                                    {% if u.is_admin %}<span class="text-primary fw-bold">Admin</span>{% else %}<span class="text-muted">User</span>{% endif %}
+                                </label>
+                            </div>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-danger delete-user-btn" data-id="{{ u.id }}" {% if session.user_id == u.id %}disabled title="Cannot delete self"{% endif %}>
+                                <i class="bi bi-trash"></i> Delete
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (document.getElementById('usersTable')) {
+        $('#usersTable').DataTable({
+            "order": [[ 0, "asc" ]],
+            "pageLength": 25
+        });
+    }
+
+    // Toggle Admin status
+    document.querySelectorAll('.toggle-admin-btn').forEach(btn => {
+        btn.addEventListener('change', function() {
+            const userId = this.getAttribute('data-id');
+            const label = this.nextElementSibling;
+            
+            fetch(`/admin/api/users/${userId}/toggle_admin`, { method: 'POST' })
+            .then(res => res.json())
+            .then(data => {
+                if(data.error) {
+                    alert(data.error);
+                    this.checked = !this.checked; // revert
+                } else if(data.is_admin) {
+                    label.innerHTML = '<span class="text-primary fw-bold">Admin</span>';
+                } else {
+                    label.innerHTML = '<span class="text-muted">User</span>';
+                }
+            })
+            .catch(err => alert('Error changing permissions.'));
+        });
+    });
+
+    // Delete User
+    document.querySelectorAll('.delete-user-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            if(confirm("Are you sure you want to permanently delete this user? All their automations will be erased.")) {
+                const userId = this.getAttribute('data-id');
+                const row = document.getElementById(`user-${userId}`);
+                const originalHtml = this.innerHTML;
+                
+                this.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+                this.disabled = true;
+
+                fetch(`/admin/api/users/${userId}`, { method: 'DELETE' })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                        this.innerHTML = originalHtml;
+                        this.disabled = false;
+                    } else {
+                        row.remove();
+                    }
+                });
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

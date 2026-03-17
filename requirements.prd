@@ -1,0 +1,259 @@
+Product Requirements Document (PRD)
+📌 Project Name
+
+DataPilot AI – Smart Web Scraping & Analytics Dashboard
+
+1. 🎯 Purpose
+
+DataPilot AI is a web-based platform that allows users to:
+
+Collect data from websites (automatically)
+
+Analyze it using data science techniques
+
+Visualize insights in a dashboard
+
+Automate repetitive web-based tasks
+
+The goal is to combine web scraping + data analysis + automation + visualization into one unified system.
+
+2. 👥 Target Users
+
+Students learning data science / Python
+
+Job seekers (tracking job listings)
+
+E-commerce researchers (price tracking)
+
+General users who want automated insights
+
+3. 🧩 Core Features
+3.1 🔍 Data Input
+
+Users can:
+
+Enter a keyword or topic (e.g., “Python jobs in Lahore”)
+
+Select data source type:
+
+Jobs
+
+Products
+
+News
+
+3.2 🕷️ Data Scraping Engine
+
+Scrapes data from websites
+
+Supports:
+
+Static scraping (requests + BeautifulSoup)
+
+Dynamic scraping (Selenium)
+
+Functional Requirements:
+
+Handle pagination
+
+Extract structured fields (title, price, date, etc.)
+
+Avoid duplicate entries
+
+3.3 📊 Data Processing (Pandas)
+
+Clean raw scraped data
+
+Transform into structured datasets
+
+Features:
+
+Filtering (price range, location, etc.)
+
+Aggregation (average, count)
+
+Sorting & grouping
+
+3.4 📈 Visualization Dashboard
+
+Display processed data in charts
+
+Charts:
+
+Line charts (trends over time)
+
+Bar charts (comparisons)
+
+Pie charts (distribution)
+
+UI:
+
+Interactive dashboard (Flask templates + JS)
+
+3.5 🤖 Automation System
+
+Users can:
+
+Schedule scraping jobs
+
+Set conditions (e.g., price < X)
+
+Actions:
+
+Trigger alerts
+
+Store historical data
+
+3.6 🧱 OOP-Based Architecture
+
+System structured with classes:
+
+BaseScraper
+
+JobScraper
+
+ProductScraper
+
+DataProcessor
+
+Visualizer
+
+AutomationManager
+
+3.7 🖥️ Admin Panel (Tkinter)
+
+Start/stop scraping jobs
+
+Monitor logs
+
+Manage tasks locally
+
+4. 🌐 Technical Requirements
+Backend
+
+Python
+
+Flask
+
+Frontend
+
+HTML, CSS, JavaScript
+
+Data Handling
+
+Pandas
+
+Scraping
+
+BeautifulSoup
+
+Selenium
+
+Visualization
+
+Matplotlib / Plotly
+
+GUI (Optional)
+
+Tkinter
+
+5. 🏗️ System Architecture
+User Input (Web UI)
+        ↓
+Flask Backend
+        ↓
+Scraper Engine (BS4 / Selenium)
+        ↓
+Data Processing (Pandas)
+        ↓
+Database / Storage (CSV / SQLite)
+        ↓
+Visualization Engine
+        ↓
+Dashboard (Frontend)
+6. 📦 Data Storage
+
+Initial: CSV files
+
+Advanced: SQLite database
+
+7. ⚙️ Non-Functional Requirements
+
+Scalable scraping design
+
+Modular OOP code
+
+Error handling (timeouts, broken pages)
+
+Clean UI/UX
+
+Maintainable codebase
+
+8. 🚀 MVP Scope (First Version)
+
+Include:
+
+Single scraping category (e.g., jobs)
+
+Basic dashboard
+
+Manual scraping trigger
+
+Simple charts
+
+Exclude (for now):
+
+Authentication
+
+Advanced automation
+
+Multi-user system
+
+9. 🔮 Future Enhancements
+
+User accounts & login
+
+Cloud deployment
+
+API integration
+
+Real-time updates (AJAX/WebSockets)
+
+Email notifications
+
+Machine learning predictions
+
+10. 📁 Suggested Folder Structure
+DataPilotAI/
+│
+├── app.py
+├── templates/
+├── static/
+│
+├── scrapers/
+│   ├── base_scraper.py
+│   ├── job_scraper.py
+│
+├── processing/
+│   └── data_processor.py
+│
+├── visualization/
+│   └── charts.py
+│
+├── automation/
+│   └── scheduler.py
+│
+├── data/
+│   └── dataset.csv
+│
+└── admin_panel/
+    └── tkinter_app.py
+11. 🎯 Success Criteria
+
+Successfully scrape real-world data
+
+Display meaningful insights
+
+Clean and modular architecture
+
+Fully working web interface

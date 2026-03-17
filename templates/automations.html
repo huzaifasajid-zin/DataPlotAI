@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+    <h2 class="fw-bold"><i class="bi bi-robot text-primary"></i> Automations Engine</h2>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newAutomationModal">
+        <i class="bi bi-plus-lg"></i> Create New Automation
+    </button>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <p class="text-muted mb-4">Set up recurring background scraping tasks. The DataPilot Engine will autonomously extract data while you sleep.</p>
+        
+        {% if automations %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Keyword Focus</th>
+                        <th>Frequency</th>
+                        <th>Status</th>
+                        <th>Last Run</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for auto in automations %}
+                    <tr id="auto-{{ auto.id }}">
+                        <td class="fw-semibold">{{ auto.keyword }}</td>
+                        <td>
+                            <span class="badge bg-secondary text-capitalize"><i class="bi bi-clock"></i> {{ auto.frequency }}</span>
+                        </td>
+                        <td>
+                            <div class="form-check form-switch cursor-pointer">
+                                <input class="form-check-input toggle-auto-btn" type="checkbox" id="toggle-{{ auto.id }}" data-id="{{ auto.id }}" {% if auto.is_active %}checked{% endif %}>
+                                <label class="form-check-label small" for="toggle-{{ auto.id }}">
+                                    {% if auto.is_active %}<span class="text-success fw-bold">Active</span>{% else %}<span class="text-muted">Paused</span>{% endif %}
+                                </label>
+                            </div>
+                        </td>
+                        <td class="small text-muted">
+                            {% if auto.last_run %}
+                                {{ auto.last_run.strftime('%Y-%m-%d %H:%M') }}
+                            {% else %}
+                                <i>Never</i>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <button class="btn btn-sm btn-outline-danger delete-auto-btn" data-id="{{ auto.id }}" title="Delete Automation">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-gear-wide-connected display-1 text-muted opacity-50"></i>
+            <h4 class="mt-3 text-muted">No Automations Active</h4>
+            <p>Click "Create New Automation" to set up your first background task.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="newAutomationModal" tabindex="-1" aria-labelledby="newAutomationModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-light border-0">
+        <h5 class="modal-title fw-bold" id="newAutomationModalLabel"><i class="bi bi-robot"></i> Configure Automation</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="automationForm">
+          <div class="modal-body p-4">
+              <div class="mb-3">
+                  <label for="autoKeyword" class="form-label fw-semibold">Target Keyword <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" id="autoKeyword" required placeholder="e.g. Python Developer">
+                  <div class="form-text">What data should the agent look for?</div>
+              </div>
+              
+              <div class="mb-3 border-start border-primary border-3 ps-3 py-2 bg-light rounded-end">
+                  <label class="form-label fw-semibold mb-2"><i class="bi bi-funnel" style="color: #3f6adb;"></i> Advanced Filters</label>
+                  <div class="row g-2">
+                      <div class="col-6">
+                          <input type="text" class="form-control form-control-sm" id="autoLocation" placeholder="Location">
+                      </div>
+                      <div class="col-6">
+                          <input type="text" class="form-control form-control-sm" id="autoCompany" placeholder="Company">
+                      </div>
+                      <div class="col-6">
+                          <select class="form-select form-select-sm" id="autoTimePeriod">
+                              <option value="" selected>Any Time</option>
+                              <option value="r86400">Past 24 Hours</option>
+                              <option value="r604800">Past Week</option>
+                              <option value="r2592000">Past Month</option>
+                          </select>
+                      </div>
+                      <div class="col-6">
+                          <input type="text" class="form-control form-control-sm" id="autoSalary" placeholder="Salary keyword">
+                      </div>
+                  </div>
+              </div>
+              <div class="mb-3">
+                  <label for="autoFrequency" class="form-label fw-semibold">Execution Frequency</label>
+                  <select class="form-select" id="autoFrequency" required>
+                      <option value="minutely">Minutely (For Demo/Testing)</option>
+                      <option value="hourly">Hourly</option>
+                      <option value="daily" selected>Daily</option>
+                      <option value="weekly">Weekly</option>
+                  </select>
+                  <div class="form-text">How often should the engine run this task?</div>
+              </div>
+          </div>
+          <div class="modal-footer border-0 bg-light">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="saveAutoBtn"><i class="bi bi-check2"></i> Save Automation</button>
+          </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

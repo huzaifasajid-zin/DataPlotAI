@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-0 text-dark">Overview</h4>
+        <p class="text-muted small mb-0">Welcome back, {{ session.get('user_name', 'User') }}</p>
+    </div>
+    <div>
+        <a href="{{ url_for('jobs_view') }}" class="btn btn-outline-secondary btn-sm me-2"><i class="bi bi-table"></i> View Rows</a>
+        <a href="{{ url_for('export_jobs') }}" class="btn btn-primary btn-sm" style="background-color: #3f6adb; border-color: #3f6adb;"><i class="bi bi-plus-lg"></i> Export CSV</a>
+    </div>
+</div>
+
+
+
+{% if total_jobs > 0 %}
+<div class="row g-4 mb-4">
+    <!-- Main Timeline Chart (Replaces "Sale") -->
+    <div class="col-lg-8">
+        <div class="chart-card">
+            <div class="chart-card-header">
+                <div>
+                    <h5 class="chart-card-title">Sale Track (Job Trend)</h5>
+                </div>
+                <div>
+                    <span class="text-muted small">Last 15 days <i class="bi bi-chevron-down"></i></span>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div id="timelineChart" class="chart-container-large"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Donut Chart (Replaces "Payments") -->
+    <div class="col-lg-4">
+        <div class="chart-card">
+            <div class="chart-card-header">
+                <h5 class="chart-card-title">Payments (Companies)</h5>
+                <i class="bi bi-three-dots text-muted"></i>
+            </div>
+            <div class="card-body p-0 d-flex flex-column justify-content-center">
+                <div id="companyChart" class="chart-container-medium"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Smoothed Area Chart (Locations) -->
+    <div class="col-lg-12">
+        <div class="chart-card">
+            <div class="chart-card-header">
+                <h5 class="chart-card-title">Traffic Sources (Locations)</h5>
+            </div>
+            <div class="card-body p-0">
+                <div id="locationChart" class="chart-container-medium"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Configuration to remove Plotly branding/menus for a cleaner look
+    const config = {displayModeBar: false, responsive: true};
+
+    {% if timeline_chart %}
+    var timelineData = {{ timeline_chart | safe }};
+    Plotly.newPlot('timelineChart', timelineData.data, timelineData.layout, config);
+    {% endif %}
+
+    {% if company_chart %}
+    var companyData = {{ company_chart | safe }};
+    Plotly.newPlot('companyChart', companyData.data, companyData.layout, config);
+    {% endif %}
+    
+    {% if location_chart %}
+    var locationData = {{ location_chart | safe }};
+    Plotly.newPlot('locationChart', locationData.data, locationData.layout, config);
+    {% endif %}
+</script>
+
+{% else %}
+<div class="card border-0 shadow-sm bg-white rounded-4 mt-5">
+    <div class="card-body p-5 text-center my-4">
+        <div class="d-inline-block bg-light shadow-sm p-4 rounded-circle mb-4">
+            <i class="bi bi-bar-chart text-primary display-4"></i>
+        </div>
+        <h4 class="fw-bold text-dark">No data available for visualization</h4>
+        <p class="text-muted mb-4 max-w-75 mx-auto">Run a scraping task to start generating insights. The beautiful charts will appear here automatically.</p>
+        <a href="{{ url_for('scraper_app') }}" class="btn btn-primary px-4" style="background-color: #3f6adb;"><i class="bi bi-play-circle"></i> Launch First Task</a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

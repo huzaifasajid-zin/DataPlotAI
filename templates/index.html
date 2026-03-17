@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mb-4 align-items-center bg-light p-5 rounded-3 shadow-sm">
+    <div class="col-md-7">
+        <h1 class="display-4 fw-bold text-primary mb-3">Welcome to DataPilot AI</h1>
+        <p class="lead text-muted">Your intelligent engine for automated web scraping, data processing, and insightful visualizations.</p>
+        <a href="#scrape-section" class="btn btn-primary btn-lg mt-2"><i class="bi bi-play-circle"></i> Start Scraping</a>
+    </div>
+    <div class="col-md-5 d-none d-md-block text-center">
+        <!-- Placeholder for a hero illustration -->
+        <i class="bi bi-cloud-arrow-down text-primary" style="font-size: 8rem; opacity: 0.8;"></i>
+    </div>
+</div>
+
+<div class="row" id="scrape-section">
+    <div class="col-md-5 mb-4">
+        <div class="card shadow-sm h-100 border-0 rounded-4">
+            <div class="card-header bg-white border-bottom pt-4 pb-3">
+                <h4 class="card-title fw-bold mb-0 text-dark"><i class="bi bi-search text-primary"></i> New Task</h4>
+            </div>
+            <div class="card-body mt-2">
+                <p class="text-muted small mb-4">Enter a keyword to start scraping public job boards instantly.</p>
+                <form id="scrapeForm">
+                    <div class="form-floating mb-3">
+                        <input type="text" id="keyword" class="form-control" placeholder="e.g. Data Scientist" required>
+                        <label for="keyword">Keyword or Job Title <span class="text-danger">*</span></label>
+                    </div>
+                    
+                    <a class="text-decoration-none small d-block mb-3" data-bs-toggle="collapse" href="#advancedFilters" role="button" aria-expanded="false" aria-controls="advancedFilters" style="color: #3f6adb;">
+                        <i class="bi bi-sliders" style="color: #3f6adb;"></i> Advanced Filters
+                    </a>
+                    
+                    <div class="collapse mb-3" id="advancedFilters">
+                        <div class="card card-body bg-light border-0 py-3">
+                            <div class="form-floating mb-2">
+                                <input type="text" id="location" class="form-control form-control-sm" placeholder="e.g. Remote, New York">
+                                <label for="location">Location</label>
+                            </div>
+                            <div class="form-floating mb-2">
+                                <input type="text" id="company" class="form-control form-control-sm" placeholder="e.g. Google, Microsoft">
+                                <label for="company">Company</label>
+                            </div>
+                            <div class="form-floating mb-2">
+                                <select id="time_period" class="form-select form-select-sm">
+                                    <option value="" selected>Any Time</option>
+                                    <option value="r86400">Past 24 Hours</option>
+                                    <option value="r604800">Past Week</option>
+                                    <option value="r2592000">Past Month</option>
+                                </select>
+                                <label for="time_period">Time Period</label>
+                            </div>
+                            <div class="form-floating">
+                                <input type="text" id="salary" class="form-control form-control-sm" placeholder="e.g. 100000">
+                                <label for="salary">Minimum Salary Keyword (Optional)</label>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary w-100 py-3 rounded-3 fw-bold" type="submit" id="scrapeBtn">
+                        <i class="bi bi-lightning-charge"></i> Launch Extraction
+                    </button>
+                </form>
+                <div id="statusAlert" class="alert d-none mt-3 rounded-3" role="alert"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-7 mb-4">
+        <div class="card shadow-sm h-100 border-0 rounded-4">
+            <div class="card-header bg-white border-bottom pt-4 pb-3">
+                <h4 class="card-title fw-bold mb-0 text-dark"><i class="bi bi-clock-history text-primary"></i> Extraction Log</h4>
+            </div>
+            <div class="card-body p-0">
+                {% if recent_tasks %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 text-nowrap">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Keyword</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th class="text-end pe-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for task in recent_tasks %}
+                            <tr id="task-{{ task.id }}">
+                                <td class="fw-semibold ps-4">{{ task.keyword }}</td>
+                                <td class="text-muted small">{{ task.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    {% if task.status == 'completed' %}
+                                        <span class="badge" style="background-color: rgba(67, 204, 121, 0.1); color: #43cc79;"><i class="bi bi-check-circle"></i> Completed</span>
+                                    {% elif task.status == 'running' %}
+                                        <span class="badge" style="background-color: rgba(63, 106, 219, 0.1); color: #3f6adb;"><i class="bi bi-arrow-repeat spin"></i> Running</span>
+                                    {% elif task.status == 'failed' %}
+                                        <span class="badge" style="background-color: rgba(242, 74, 74, 0.1); color: #f24a4a;"><i class="bi bi-x-circle"></i> Failed</span>
+                                    {% else %}
+                                        <span class="badge bg-light text-secondary"><i class="bi bi-hourglass-split"></i> Pending</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end pe-4">
+                                    <button class="btn btn-sm btn-outline-danger delete-task-btn rounded-3" data-task-id="{{ task.id }}" title="Delete Task">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="p-5 text-center text-muted">
+                    <div class="d-inline-block bg-light p-3 rounded-circle mb-3">
+                        <i class="bi bi-inbox fs-2"></i>
+                    </div>
+                    <p class="mb-0">No scraping tasks found. Start one above!</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
