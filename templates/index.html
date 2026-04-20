@@ -24,7 +24,20 @@
                 <form id="scrapeForm">
                     <div class="form-floating mb-3">
                         <input type="text" id="keyword" class="form-control" placeholder="e.g. Data Scientist" required>
-                        <label for="keyword">Keyword or Job Title <span class="text-danger">*</span></label>
+                        <label for="keyword" id="keywordLabel">Keyword, Title or Skill <span class="text-danger">*</span></label>
+                        <small id="keywordHint" class="form-text text-muted d-none mt-1"><i class="bi bi-info-circle"></i> Tip: Use commas to separate multiple skills (e.g., Data,Engineer, Database,Developer).</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label d-block text-muted small fw-bold">Search Type:</label>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="task_type" id="typeJob" value="job" checked>
+                            <label class="form-check-label" for="typeJob">Jobs</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="task_type" id="typeProfile" value="profile">
+                            <label class="form-check-label" for="typeProfile">Candidates (Profiles)</label>
+                        </div>
                     </div>
                     
                     <a class="text-decoration-none small d-block mb-3" data-bs-toggle="collapse" href="#advancedFilters" role="button" aria-expanded="false" aria-controls="advancedFilters" style="color: #3f6adb;">
@@ -37,22 +50,29 @@
                                 <input type="text" id="location" class="form-control form-control-sm" placeholder="e.g. Remote, New York">
                                 <label for="location">Location</label>
                             </div>
-                            <div class="form-floating mb-2">
-                                <input type="text" id="company" class="form-control form-control-sm" placeholder="e.g. Google, Microsoft">
-                                <label for="company">Company</label>
+                            <div id="jobOnlyFilters">
+                                <div class="form-floating mb-2">
+                                    <input type="text" id="company" class="form-control form-control-sm" placeholder="e.g. Google, Microsoft">
+                                    <label for="company">Company</label>
+                                </div>
+                                <div class="form-floating mb-2">
+                                    <select id="time_period" class="form-select form-select-sm">
+                                        <option value="" selected>Any Time</option>
+                                        <option value="r86400">Past 24 Hours</option>
+                                        <option value="r604800">Past Week</option>
+                                        <option value="r2592000">Past Month</option>
+                                    </select>
+                                    <label for="time_period">Time Period</label>
+                                </div>
+                                <div class="form-floating">
+                                    <input type="text" id="salary" class="form-control form-control-sm" placeholder="e.g. 100000">
+                                    <label for="salary">Minimum Salary Keyword (Optional)</label>
+                                </div>
                             </div>
-                            <div class="form-floating mb-2">
-                                <select id="time_period" class="form-select form-select-sm">
-                                    <option value="" selected>Any Time</option>
-                                    <option value="r86400">Past 24 Hours</option>
-                                    <option value="r604800">Past Week</option>
-                                    <option value="r2592000">Past Month</option>
-                                </select>
-                                <label for="time_period">Time Period</label>
-                            </div>
-                            <div class="form-floating">
-                                <input type="text" id="salary" class="form-control form-control-sm" placeholder="e.g. 100000">
-                                <label for="salary">Minimum Salary Keyword (Optional)</label>
+                            <div class="form-floating d-none" id="experienceFilterDiv">
+                                <input type="text" id="experience" class="form-control form-control-sm" placeholder="e.g. 5 years, 3+ years">
+                                <label for="experience">Experience Required (Optional)</label>
+                                <small class="form-text text-muted small"><i class="bi bi-info-circle"></i> e.g. "5 years", "3+ years experience"</small>
                             </div>
                         </div>
                     </div>

@@ -37,6 +37,9 @@
                         <li class="nav-item">
                             <a class="nav-link {{ 'active' if request.endpoint == 'jobs_view' else '' }}" href="/jobs"><i class="bi bi-list-columns"></i> Job Directory</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ 'active' if request.endpoint == 'profiles_view' else '' }}" href="/profiles"><i class="bi bi-people"></i> Candidates</a>
+                        </li>
                         
                         {% if session.get('is_admin') %}
                         <li class="nav-item">

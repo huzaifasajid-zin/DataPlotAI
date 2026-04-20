@@ -15,20 +15,18 @@ def run_scraper(app, task_id, keyword):
             task.status = 'running'
             db.session.commit()
             
-            scraper = JobScraper(task_id=task_id)
+            if getattr(task, 'task_type', 'job') == 'profile':
+                from scrapers.profile_scraper import ProfileScraper
+                scraper = ProfileScraper(task_id=task_id)
+            else:
+                scraper = JobScraper(task_id=task_id)
+                
             count = scraper.scrape(keyword)
             
             task.status = 'completed'
             db.session.commit()
-            print(f"[Scheduler] Scraping completed for '{keyword}'. Found {count} jobs.")
+            print(f"[Scheduler] Scraping completed for '{keyword}'. Found {count} results.")
             
-            # Trigger Email Notification
-            from email_service import send_scrape_completion_email
-            from models import User
-            if task.user_id:
-                user = User.query.get(task.user_id)
-                if user:
-                    send_scrape_completion_email(user, task, count)
         except Exception as e:
             print(f"[Scheduler] Scraping failed: {e}")
             if task:
@@ -68,6 +66,8 @@ def check_and_run_automations(app):
                     company=auto.company,
                     time_period=auto.time_period,
                     salary=auto.salary,
+                    experience=auto.experience,
+                    task_type=auto.task_type,
                     status='pending',
                     user_id=auto.user_id
                 )

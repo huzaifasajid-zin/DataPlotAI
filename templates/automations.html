@@ -27,7 +27,14 @@
                 <tbody>
                     {% for auto in automations %}
                     <tr id="auto-{{ auto.id }}">
-                        <td class="fw-semibold">{{ auto.keyword }}</td>
+                        <td class="fw-semibold">
+                            {{ auto.keyword }}
+                            {% if auto.task_type == 'profile' %}
+                                <span class="badge bg-info ms-2" style="font-size: 0.65em;">Candidates</span>
+                            {% else %}
+                                <span class="badge bg-primary ms-2" style="font-size: 0.65em;">Jobs</span>
+                            {% endif %}
+                        </td>
                         <td>
                             <span class="badge bg-secondary text-capitalize"><i class="bi bi-clock"></i> {{ auto.frequency }}</span>
                         </td>
@@ -82,16 +89,28 @@
                   <div class="form-text">What data should the agent look for?</div>
               </div>
               
+              <div class="mb-3">
+                  <label class="form-label d-block fw-semibold">Search Type <span class="text-danger">*</span></label>
+                  <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="autoTaskType" id="autoTypeJob" value="job" checked>
+                      <label class="form-check-label" for="autoTypeJob">Jobs</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="autoTaskType" id="autoTypeProfile" value="profile">
+                      <label class="form-check-label" for="autoTypeProfile">Candidates (Profiles)</label>
+                  </div>
+              </div>
+              
               <div class="mb-3 border-start border-primary border-3 ps-3 py-2 bg-light rounded-end">
                   <label class="form-label fw-semibold mb-2"><i class="bi bi-funnel" style="color: #3f6adb;"></i> Advanced Filters</label>
                   <div class="row g-2">
                       <div class="col-6">
                           <input type="text" class="form-control form-control-sm" id="autoLocation" placeholder="Location">
                       </div>
-                      <div class="col-6">
+                      <div class="col-6 auto-job-only">
                           <input type="text" class="form-control form-control-sm" id="autoCompany" placeholder="Company">
                       </div>
-                      <div class="col-6">
+                      <div class="col-6 auto-job-only">
                           <select class="form-select form-select-sm" id="autoTimePeriod">
                               <option value="" selected>Any Time</option>
                               <option value="r86400">Past 24 Hours</option>
@@ -99,8 +118,12 @@
                               <option value="r2592000">Past Month</option>
                           </select>
                       </div>
-                      <div class="col-6">
+                      <div class="col-6 auto-job-only">
                           <input type="text" class="form-control form-control-sm" id="autoSalary" placeholder="Salary keyword">
+                      </div>
+                      <div class="col-12 d-none" id="autoExperienceDiv">
+                          <input type="text" class="form-control form-control-sm" id="autoExperience" placeholder="Experience (e.g. 5 years, 3+ years)">
+                          <div class="form-text small">e.g. "5 years", "3+ years experience"</div>
                       </div>
                   </div>
               </div>

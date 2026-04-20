@@ -21,6 +21,8 @@ class ScrapeTask(db.Model):
     company = db.Column(db.String(255))
     time_period = db.Column(db.String(50))
     salary = db.Column(db.String(255))
+    experience = db.Column(db.String(255))
+    task_type = db.Column(db.String(50), default='job') # 'job' or 'profile'
     status = db.Column(db.String(50), default='pending') # pending, running, completed, failed
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -44,7 +46,19 @@ class AutomationSchedule(db.Model):
     company = db.Column(db.String(255))
     time_period = db.Column(db.String(50))
     salary = db.Column(db.String(255))
+    experience = db.Column(db.String(255))
+    task_type = db.Column(db.String(50), default='job') # 'job' or 'profile'
     frequency = db.Column(db.String(50), nullable=False) # 'hourly', 'daily', 'weekly'
     is_active = db.Column(db.Boolean, default=True)
     last_run = db.Column(db.DateTime, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class ProfileListing(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    task_id = db.Column(db.Integer, db.ForeignKey('scrape_task.id'), nullable=True)
+    name = db.Column(db.String(255), nullable=False)
+    headline = db.Column(db.Text)
+    location = db.Column(db.String(255))
+    link = db.Column(db.Text)
+    source = db.Column(db.String(100))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

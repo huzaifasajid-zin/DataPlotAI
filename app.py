@@ -1,9 +1,17 @@
 import os
+from datetime import datetime
+from threading import Thread
+import traceback
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
 import threading
 import csv
 from io import StringIO
 from flask import Flask, render_template, request, jsonify, redirect, url_for, Response, session
-from models import db, ScrapeTask, JobListing, AutomationSchedule
+from models import db, ScrapeTask, JobListing, AutomationSchedule, ProfileListing
 from visualization.charts import Visualizer
 from scrapers.job_scraper import JobScraper
 from authentication import auth_bp, login_required
@@ -88,6 +96,13 @@ def create_app():
         autos = AutomationSchedule.query.filter_by(user_id=session['user_id']).order_by(AutomationSchedule.created_at.desc()).all()
         return render_template('automations.html', automations=autos)
 
+    @app.route('/profiles')
+    @login_required
+    def profiles_view():
+        user_id = session.get('user_id')
+        profiles = ProfileListing.query.join(ScrapeTask).filter(ScrapeTask.user_id == user_id).order_by(ProfileListing.created_at.desc(), ProfileListing.id.desc()).all()
+        return render_template('profiles.html', profiles=profiles)
+
     @app.route('/export/jobs')
     @login_required
     def export_jobs():
@@ -125,6 +140,7 @@ def create_app():
         company = data.get('company')
         time_period = data.get('time_period')
         salary = data.get('salary')
+        task_type = data.get('task_type', 'job')
         
         if not keyword or not freq:
             return jsonify({'error': 'Keyword and frequency are required'}), 400
@@ -136,6 +152,8 @@ def create_app():
             company=company, # type: ignore
             time_period=time_period, # type: ignore
             salary=salary, # type: ignore
+            experience=data.get('experience'), # type: ignore
+            task_type=task_type, # type: ignore
             frequency=freq # type: ignore
         )
         db.session.add(auto)
@@ -164,6 +182,7 @@ def create_app():
         try:
             task = ScrapeTask.query.filter_by(id=task_id, user_id=session.get('user_id')).first_or_404()
             JobListing.query.filter_by(task_id=task.id).delete()
+            ProfileListing.query.filter_by(task_id=task.id).delete()
             db.session.delete(task)
             db.session.commit()
             return jsonify({'message': 'Task deleted successfully'}), 200
@@ -181,20 +200,17 @@ def create_app():
                 task.status = 'running'
                 db.session.commit()
                 
-                scraper = JobScraper(task_id=task_id)
+                if getattr(task, 'task_type', 'job') == 'profile':
+                    from scrapers.profile_scraper import ProfileScraper
+                    scraper = ProfileScraper(task_id=task_id)
+                else:
+                    scraper = JobScraper(task_id=task_id)
+                    
                 count = scraper.scrape(keyword)
                 
                 task.status = 'completed'
                 db.session.commit()
-                print(f"Scraping completed for '{keyword}'. Found {count} jobs.")
-                
-                # Trigger Email Notification
-                from email_service import send_scrape_completion_email
-                from models import User
-                if task.user_id:
-                    user = User.query.get(task.user_id)
-                    if user:
-                        send_scrape_completion_email(user, task, count)
+                print(f"Scraping completed for '{keyword}'. Found {count} results.")
             except Exception as e:
                 print(f"Scraping failed: {e}")
                 
@@ -213,6 +229,8 @@ def create_app():
         task.company = data.get('company')
         task.time_period = data.get('time_period')
         task.salary = data.get('salary')
+        task.experience = data.get('experience')
+        task.task_type = data.get('task_type', 'job')
         task.status = 'pending'
 
         db.session.add(task)
@@ -227,7 +245,7 @@ def create_app():
     @login_required
     def task_status(task_id):
         task = ScrapeTask.query.filter_by(id=task_id, user_id=session.get('user_id')).first_or_404()
-        return jsonify({'status': task.status, 'keyword': task.keyword})
+        return jsonify({'status': task.status, 'keyword': task.keyword, 'task_type': getattr(task, 'task_type', 'job')})
 
     return app
 

@@ -1,105 +1,170 @@
+import re
+import os
 import urllib.parse
-from bs4 import BeautifulSoup
+import requests
 from scrapers.base_scraper import BaseScraper
 from models import db, JobListing, ScrapeTask
 
+
 class JobScraper(BaseScraper):
     def __init__(self, task_id):
-        # We will dynamically set the base URL during the scrape method based on the keyword
         super().__init__(base_url="")
         self.task_id = task_id
 
-    def scrape(self, keyword):
+    # ------------------------------------------------------------------
+    # Searlo search (same pattern as ProfileScraper)
+    # ------------------------------------------------------------------
+
+    def _searlo_search(self, query: str) -> list[dict]:
+        api_key = os.getenv("SEARLO_API_KEY")
+        if not api_key:
+            print("[JobScraper] Missing SEARLO_API_KEY in .env")
+            return []
+
+        url = "https://api.searlo.tech/api/v1/search"
+
+        headers_variants = [
+            {"Authorization": f"Bearer {api_key}"},
+            {"x-api-key": api_key},
+            {"api_key": api_key},
+            {"X-API-KEY": api_key},
+        ]
+
+        for headers in headers_variants:
+            try:
+                res = requests.get(
+                    f"{url}?q={urllib.parse.quote(query)}",
+                    headers=headers,
+                    timeout=15,
+                )
+                if res.status_code == 200:
+                    return self._extract_items(res.json())
+
+                res = requests.post(
+                    url,
+                    headers=headers,
+                    json={"query": query},
+                    timeout=15,
+                )
+                if res.status_code == 200:
+                    return self._extract_items(res.json())
+
+            except Exception as e:
+                print(f"[JobScraper] Searlo request error: {e}")
+                continue
+
+        print("[JobScraper] All Searlo header variants failed.")
+        return []
+
+    @staticmethod
+    def _extract_items(data) -> list[dict]:
+        if isinstance(data, list):
+            return data
+        for key in ("results", "organic", "items", "data"):
+            if isinstance(data.get(key), list):
+                return data[key]
+        return []
+
+    # ------------------------------------------------------------------
+    # Title parser — extracts job title + company
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _parse_job_title(raw_title: str) -> tuple[str, str]:
         """
-        Scrapes real live job listings related to the keyword from LinkedIn's public jobs portal.
-        This provides actual live data instead of mock job postings.
+        Returns (job_title, company).
+        LinkedIn job titles look like:
+          "Software Engineer at Google - LinkedIn"
+          "Google is hiring Data Scientist | LinkedIn"
+          "Backend Developer - Acme Corp - LinkedIn"
         """
-        # We will fetch the actual model to use the advanced filters
+        title = re.sub(r"[\|\-·]\s*LinkedIn\s*$", "", raw_title, flags=re.IGNORECASE).strip()
+        title = re.sub(r"\s*LinkedIn\s*$", "", title, flags=re.IGNORECASE).strip()
+
+        company = "Unknown Company"
+
+        # "X is hiring Y" pattern
+        hiring_match = re.search(r"^(.+?)\s+is hiring\s+(.+)$", title, re.IGNORECASE)
+        if hiring_match:
+            return hiring_match.group(2).strip(), hiring_match.group(1).strip()
+
+        # "Job Title at Company" pattern
+        if " at " in title:
+            parts = title.split(" at ", 1)
+            return parts[0].strip(), parts[1].strip()
+
+        # Fallback: split on " - " or " | "
+        for sep in (" - ", " | "):
+            if sep in title:
+                parts = title.split(sep, 1)
+                return parts[0].strip(), parts[1].strip()
+
+        return title.strip(), company
+
+    # ------------------------------------------------------------------
+    # Main scrape
+    # ------------------------------------------------------------------
+
+    def scrape(self, keyword: str) -> int:
         task = ScrapeTask.query.get(self.task_id)
         if not task:
-            print(f"[Scraper] Task {self.task_id} not found.")
+            print(f"[JobScraper] Task {self.task_id} not found.")
             return 0
-            
-        search_query = keyword
+
+        # Build search query
+        search_query = f'site:linkedin.com/jobs/view/ {keyword}'
         if task.company:
-            search_query += f" {task.company}"
-        if task.salary:
-            search_query += f" {task.salary}"
-            
-        # URL encode the keyword for the search query
-        encoded_keyword = urllib.parse.quote(search_query)
-        
-        # Target the public LinkedIn jobs search endpoint 
-        target_url = f"https://www.linkedin.com/jobs/search/?keywords={encoded_keyword}&refresh=true"
-        
+            search_query += f' "{task.company}"'
         if task.location:
-            target_url += f"&location={urllib.parse.quote(task.location)}"
-            
-        if task.time_period:
-            # f_TPR parameter values: r86400 (24h), r604800 (week), r2592000 (month)
-            target_url += f"&f_TPR={task.time_period}"
-            
-        self.base_url = target_url
-        
-        # BaseScraper fetches with a generic User-Agent to avoid initial basic blocks
-        html = self.fetch_page(target_url)
-        soup = self.parse_html(html)
-        
-        if not soup:
-            print(f"[Scraper] Failed to parse HTML for keyword: {keyword}")
-            return 0
+            search_query += f' "{task.location}"'
+        if task.salary:
+            search_query += f' "{task.salary}"'
 
-        # LinkedIn uses specific classes for their public unauthenticated job cards
-        job_elements = soup.find_all("div", class_="base-card")
+        print(f"[JobScraper] Querying: {search_query}")
+        items = self._searlo_search(search_query)
+        print(f"[JobScraper] Searlo returned {len(items)} items")
+
         count = 0
+        TARGET = 10
 
-        for job_element in job_elements:
-            try:
-                title_element = job_element.find("h3", class_="base-search-card__title")
-                company_element = job_element.find("h4", class_="base-search-card__subtitle")
-                location_element = job_element.find("span", class_="job-search-card__location")
-                date_element = job_element.find("time", class_="job-search-card__listdate")
-                
-                # The link is usually attached to an anchor tag wrapping the card or title
-                link_element = job_element.find("a", class_="base-card__full-link")
-                
-                title = title_element.text.strip() if title_element else "Unknown Title"
-                company = company_element.text.strip() if company_element else "Unknown Company"
-                location = location_element.text.strip() if location_element else "Unknown Location"
-                
-                # Extract date, if recently posted it might use 'job-search-card__listdate--new'
-                if not date_element:
-                    date_element = job_element.find("time", class_="job-search-card__listdate--new")
-                
-                date_posted = date_element['datetime'] if date_element and date_element.has_attr('datetime') else (date_element.text.strip() if date_element else "Recent")
-                
-                link = link_element["href"] if link_element and link_element.has_attr("href") else ""
-                
-                # Exclude completely broken extractions
-                if title == "Unknown Title" and company == "Unknown Company":
-                    continue
+        for item in items:
+            if count >= TARGET:
+                break
 
-                # Save the real data to the database
-                job = JobListing(
-                    task_id=self.task_id,
-                    title=title,
-                    company=company,
-                    location=location,
-                    price_or_salary="Not Disclosed", # LinkedIn usually hides salary on the search page
-                    link=link,
-                    date_posted=date_posted,
-                    source="LinkedIn Public"
-                )
-                db.session.add(job)
-                count += 1
-                
-                # Throttle to max 25 jobs per run to avoid flooding the DB / looking suspicious
-                if count >= 25:
-                    break
-                    
-            except Exception as e:
-                print(f"[Scraper] Error parsing a job card: {e}")
+            link      = item.get("link") or item.get("url") or ""
+            raw_title = item.get("title") or ""
+            snippet   = item.get("snippet") or item.get("description") or ""
+
+            if "linkedin.com/jobs/view/" not in link:
                 continue
-            
+
+            link = link.split("?")[0].rstrip("/")
+
+            job_title, company = self._parse_job_title(raw_title)
+
+            if not job_title:
+                continue
+
+            # Override company from task if explicitly set
+            if task.company:
+                company = task.company
+
+            location = task.location or "Unknown Location"
+
+            job = JobListing(
+                task_id=self.task_id,
+                title=job_title[:255],
+                company=company[:255],
+                location=location,
+                price_or_salary=task.salary if task.salary else "Not Disclosed",
+                link=link,
+                date_posted="Recent",
+                source="LinkedIn",
+            )
+            db.session.add(job)
+            count += 1
+            print(f"  ✓ [{count}] {job_title} @ {company}")
+
         db.session.commit()
+        print(f"[JobScraper] Done — saved {count} jobs.")
         return count
