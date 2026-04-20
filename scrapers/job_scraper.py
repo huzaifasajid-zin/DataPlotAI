@@ -16,6 +16,11 @@ class JobScraper(BaseScraper):
     # ------------------------------------------------------------------
 
     def _searlo_search(self, query: str) -> list[dict]:
+        
+        # unComment this FOR PythonAnywhere deployment
+        # BASE_DIR = "/home/Huzaifa965/DataPlotAI"
+        # load_dotenv(os.path.join(BASE_DIR, ".env"))
+        
         api_key = os.getenv("SEARLO_API_KEY")
         if not api_key:
             print("[JobScraper] Missing SEARLO_API_KEY in .env")

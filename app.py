@@ -252,3 +252,11 @@ def create_app():
 if __name__ == '__main__':
     app = create_app()
     app.run(debug=True)
+    
+    # For PythonAnywhere deployment, in WSGI file:
+    # import sys
+    # project_home = '/home/Huzaifa965/DataPlotAI'
+    # if project_home not in sys.path:
+    #     sys.path = [project_home] + sys.path
+    # from app import create_app
+    # application = create_app()

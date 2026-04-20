@@ -1,6 +1,7 @@
 import re
 import os
 import urllib.parse
+from dotenv import load_dotenv
 import requests
 from scrapers.base_scraper import BaseScraper
 from models import db, ProfileListing, ScrapeTask
@@ -20,6 +21,10 @@ class ProfileScraper(BaseScraper):
         Call Searlo API and return a list of result dicts.
         Mirrors your test file: tries each header variant with GET then POST.
         """
+        # unComment this FOR PythonAnywhere deployment
+        # BASE_DIR = "/home/Huzaifa965/DataPlotAI"
+        # load_dotenv(os.path.join(BASE_DIR, ".env"))
+        
         api_key = os.getenv("SEARLO_API_KEY")
         if not api_key:
             print("[ProfileScraper] Missing SEARLO_API_KEY in .env")
