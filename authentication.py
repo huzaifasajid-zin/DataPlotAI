@@ -26,12 +26,15 @@ def signup():
         if user:
             flash('Email address already exists. Please log in.', 'danger')
             return redirect(url_for('auth.signup'))
+        
+        is_first_user = User.query.first() is None
 
         new_user = User(
             name=name,
             purpose=purpose,
             email=email,
-            password_hash=generate_password_hash(password, method='scrypt')
+            password_hash=generate_password_hash(password, method='scrypt'),
+            is_admin=is_first_user
         )
 
         db.session.add(new_user)
