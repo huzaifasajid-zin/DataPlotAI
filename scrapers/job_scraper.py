@@ -2,6 +2,7 @@ import re
 import os
 import urllib.parse
 import requests
+from dotenv import load_dotenv
 from scrapers.base_scraper import BaseScraper
 from models import db, JobListing, ScrapeTask
 
