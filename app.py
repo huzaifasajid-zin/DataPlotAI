@@ -23,10 +23,17 @@ def create_app():
     # Configure required secrets and SQLite database
     app.secret_key = os.environ.get('SECRET_KEY', 'develop_secret_key_123')
     basedir = os.path.abspath(os.path.dirname(__file__))
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'data', 'data.db')
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    # app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'data', 'data.db')
+    # app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+    # # Initialize plugins
+    # db.init_app(app)
     
-    # Initialize plugins
+    database_url = os.environ.get("DATABASE_URL")
+    if database_url and database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql://", 1)
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     db.init_app(app)
     
     # Register Authentication Blueprint
