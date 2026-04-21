@@ -35,7 +35,6 @@ def run_scraper(app, task_id, keyword):
 
 def check_and_run_automations(app):
     """Monitors the active 'AutomationSchedule' entries in the database and runs due tasks."""
-    print(f"[{datetime.utcnow()}] Checking for due automations...")
     with app.app_context():
         now = datetime.utcnow()
         active_automations = AutomationSchedule.query.filter_by(is_active=True).all()
