@@ -23,10 +23,25 @@ def create_app():
 
     basedir = os.path.abspath(os.path.dirname(__file__))
     app.secret_key = os.environ.get('SECRET_KEY', 'develop_secret_key_123')
+    
+    # Database Configuration
     database_url = os.environ.get("DATABASE_URL")
-    if database_url and database_url.startswith("postgres://"):
-        database_url = database_url.replace("postgres://", "postgresql://", 1)
-    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+    sqlite_url = "sqlite:///" + os.path.join(basedir, 'data', 'data.db')
+    
+    if os.environ.get('RENDER') and database_url:
+        if database_url.startswith("postgres://"):
+            database_url = database_url.replace("postgres://", "postgresql://", 1)
+        
+        # Check if psycopg2 driver is available
+        try:
+            import psycopg2
+            app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+        except ImportError:
+            print("PostgreSQL driver 'psycopg2' not found. Falling back to SQLite.")
+            app.config['SQLALCHEMY_DATABASE_URI'] = sqlite_url
+    else:
+        app.config['SQLALCHEMY_DATABASE_URI'] = sqlite_url
+        
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     db.init_app(app)
     
@@ -42,7 +57,20 @@ def create_app():
     
     # Ensure tables are created and start scheduler
     with app.app_context():
-        db.create_all()
+        try:
+            db.create_all()
+        except Exception as e:
+            print(f"Database creation failed: {e}")
+            if app.config['SQLALCHEMY_DATABASE_URI'] != sqlite_url:
+                print("Falling back to SQLite...")
+                app.config['SQLALCHEMY_DATABASE_URI'] = sqlite_url
+                # No easy way to re-init db extension here without potential side effects, 
+                # but for simple apps, this fallback is a good safety net.
+                # In most cases, the next request will trigger engine creation with the new URI if the first failed.
+                try:
+                    db.create_all()
+                except Exception as e2:
+                    print(f"SQLite fallback also failed: {e2}")
         
     init_scheduler(app)
         
