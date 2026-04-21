@@ -20,15 +20,9 @@ from automation.scheduler import init_scheduler
 def create_app():
     app = Flask(__name__)
     
-    # Configure required secrets and SQLite database
-    app.secret_key = os.environ.get('SECRET_KEY', 'develop_secret_key_123')
-    basedir = os.path.abspath(os.path.dirname(__file__))
-    # app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'data', 'data.db')
-    # app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-    # # Initialize plugins
-    # db.init_app(app)
-    
+    basedir = os.path.abspath(os.path.dirname(__file__))
+    app.secret_key = os.environ.get('SECRET_KEY', 'develop_secret_key_123')
     database_url = os.environ.get("DATABASE_URL")
     if database_url and database_url.startswith("postgres://"):
         database_url = database_url.replace("postgres://", "postgresql://", 1)
