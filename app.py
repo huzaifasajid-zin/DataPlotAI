@@ -41,19 +41,6 @@ def create_app():
                 new_netloc = parsed.netloc.replace(parsed.hostname, new_hostname)
                 database_url = urlunparse(parsed._replace(netloc=new_netloc))
                 print(f"Fixed Render internal URL for external access: {new_hostname}")
-
-        # Check if psycopg2 driver is available for PostgreSQL
-        if "postgresql" in database_url:
-            try:
-                import psycopg2
-                app.config['SQLALCHEMY_DATABASE_URI'] = database_url
-                print(f"Using PostgreSQL database: {database_url.split('@')[-1]}") 
-            except ImportError:
-                print("PostgreSQL driver 'psycopg2' not found. Falling back to SQLite.")
-                app.config['SQLALCHEMY_DATABASE_URI'] = sqlite_url
-        else:
-            app.config['SQLALCHEMY_DATABASE_URI'] = database_url
-            print(f"Using database: {database_url}")
     else:
         app.config['SQLALCHEMY_DATABASE_URI'] = sqlite_url
         print(f"Using SQLite database: {sqlite_url}")
